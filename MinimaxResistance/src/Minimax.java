@@ -2,7 +2,6 @@ import java.util.ArrayList;
 
 public class Minimax {
 
-
     public static void main(String[] args) {
         Game g = new Game(5);
         g.play(true);
@@ -26,7 +25,8 @@ public class Minimax {
                 indices[i]++;
                 // This index is good. (The earlier the index, the earlier it stops being good.)
                 if (indices[i] <= players.size() + i - size) {
-                    // Move all the later indices to trail after it. (If this is the last index, nothing changes)
+                    // Move all the later indices to trail after it. (If this is the last index,
+                    // nothing changes)
                     for (int j = i + 1; j < size; j++) {
                         indices[j] = indices[j - 1] + 1;
                     }
@@ -96,6 +96,7 @@ public class Minimax {
 
     /**
      * PARTIAL IMPLEMENTATION; ALWAYS TRUE AND FALSE
+     * 
      * @param t
      * @param g
      * @return
@@ -106,8 +107,10 @@ public class Minimax {
         results.add(false);
         return results;
     }
+
     /**
      * There's a temporary assumption here: votes always go both ways
+     * 
      * @param index
      * @param g
      * @param chatty
@@ -145,16 +148,17 @@ public class Minimax {
         return 0;
     }
 
-
     /**
-     * Ugh, this needs rework - what we need is a list of *possible* spy affiliations, filtered down as we work our way down the tree.
+     * Ugh, this needs rework - what we need is a list of *possible* spy
+     * affiliations, filtered down as we work our way down the tree.
+     * 
      * @param t
      * @return
      */
     public static ArrayList<Boolean> getMissionOutcomes(Team t, Game g) {
         ArrayList<Boolean> outcomes = new ArrayList<>();
         outcomes.add(true);
-        for (Player p: t.players) {
+        for (Player p : t.players) {
             if (g.possibleSpies.contains(p)) {
                 outcomes.add(false);
                 break;
@@ -162,6 +166,7 @@ public class Minimax {
         }
         return outcomes;
     }
+
     public static int branchMissions(int index, Game g, Team currentTeam, boolean chatty, boolean max) {
         ArrayList<Boolean> outcomes = getMissionOutcomes(currentTeam);
         if (outcomes.size() == 1) {
@@ -175,11 +180,11 @@ public class Minimax {
                 System.out.println("Mission " + (g.missions[index].succeeded ? "succeeded" : "failed"));
             }
             int victory = assessVictory(index, g, chatty);
-            // There are two outcomes possible. If either is an outright loss (for the current player), report that.
+            // There are two outcomes possible. If either is an outright loss (for the
+            // current player), report that.
             if (max && victory == -1) {
                 return -1;
-            }
-            else if (!max && victory == 1) {
+            } else if (!max && victory == 1) {
                 return 1;
             }
             // Otherwise the game is still in play and branches further.
@@ -215,9 +220,7 @@ public class Minimax {
         return 0;
     }
 
-
-
-  public int miniPlay(boolean chatty) {
+    public int miniPlay(boolean chatty) {
         Game g = new Game(5);
         boolean won = false;
         branchTeamChoice(0, g, true, chatty);
