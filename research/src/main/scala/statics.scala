@@ -68,3 +68,13 @@ case class Report(origin: Int, assertions: Array[Char])
 extension (n: Int)
   def factorial: Int = (1 to n).product
   def choose(k: Int): Int = n.factorial / (k.factorial * (n-k).factorial)
+
+/**
+ * should allows us to do the whole "precise" values by representing a rational number as
+ * a tuple of ints which we can now perform arithmetic operations on
+ */
+extension (rational: (Int, Int))
+  def *(o: (Int, Int)): (Int, Int) = (rational._1 * o._1, rational._2 * o._2)
+  def /(o: (Int, Int)): (Int, Int) = rational * o.swap
+  def +(o: (Int, Int)): (Int, Int) = ((rational._1 * o._2) + (rational._2 * o._1), rational._2 * o._2)
+  def -(o: (Int, Int)): (Int, Int) = rational + (-o._1, o._2)
