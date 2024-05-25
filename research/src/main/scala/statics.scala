@@ -32,15 +32,15 @@ def all_missions(players: Int, size: Int): Seq[Seq[Int]] = {
   (0 until players).combinations(size).toSeq
 }
 
-val three_man_five = all_missions(5, 3)
+val three_man_five: Seq[Seq[Int]] = all_missions(5, 3)
 
-val three_man_six = all_missions(6, 3)
+val three_man_six: Seq[Seq[Int]] = all_missions(6, 3)
 
-val four_man_six = all_missions(6, 4)
+val four_man_six: Seq[Seq[Int]] = all_missions(6, 4)
 
-val five_man_indices = Math.pow(5 choose 3, 3).toInt
+val five_man_indices: Int = Math.pow(5 choose 3, 3).toInt
 
-val six_man_indices = ((6 choose 3) * (Math.pow(6 choose 4, 2))).toInt
+val six_man_indices: Int = (Math.pow(6 choose 3, 2).toInt * (Math.pow(6 choose 4, 2))).toInt
 
 /**
  * get list of all missions based on mission number, and number of players
@@ -74,7 +74,31 @@ extension (n: Int)
  * a tuple of ints which we can now perform arithmetic operations on
  */
 extension (rational: (Int, Int))
-  def *(o: (Int, Int)): (Int, Int) = (rational._1 * o._1, rational._2 * o._2)
+  def *(o: (Int, Int)): (Int, Int) = reduce(rational._1 * o._1, rational._2 * o._2)
   def /(o: (Int, Int)): (Int, Int) = rational * o.swap
-  def +(o: (Int, Int)): (Int, Int) = ((rational._1 * o._2) + (rational._2 * o._1), rational._2 * o._2)
+  def +(o: (Int, Int)): (Int, Int) = reduce((rational._1 * o._2) + (rational._2 * o._1), rational._2 * o._2)
   def -(o: (Int, Int)): (Int, Int) = rational + (-o._1, o._2)
+  
+  def reduce(numerator: Int, denominator: Int): (Int, Int) = {
+    if numerator == 0 then {
+      (0, 1)
+    }
+    val negative: Boolean = ((numerator < 0) || (denominator < 0)) && !((numerator < 0 ) && denominator < 0)
+    var num = Math.abs(numerator)
+    var den = Math.abs(denominator)
+    var divisor = gcd(num, den)
+    num /= divisor
+    den /= divisor
+    if negative then num *= -1
+    (num, den)
+  }
+  
+  def gcd(a: Int, b: Int): Int = {
+    var aVar = a
+    var bVar = b
+    while aVar != bVar do {
+      if aVar > bVar then aVar = aVar-bVar
+      else bVar = bVar-aVar
+    }
+    aVar
+  }
