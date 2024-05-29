@@ -415,12 +415,44 @@ Map[Intentions.Intentions, List[List[Report]]] = {
           current = current :+ nextReport
           mapping = mapping + (Intentions.TwoReportsOneSpyFourTotal -> current)
         }
+        else {
+          println("!UNCATEGORIZED INTENTION!")
+        }
       }
     }
   }
   mapping
 }
 
+
+
+def reduceSpyIntentionsMap(map: Map[Intentions.Intentions, List[List[Report]]]):
+          Map[Intentions.Intentions, List[(Int, List[Report])]] = {
+
+  var output: Map[Intentions.Intentions, List[(Int, List[Report])]] = Map()
+  for key <- map.keys do {
+    val possibles = map(key)
+    var reduced: List[(Int, List[Report])] = List()
+    var merlinCounts: List[Int] = List()
+    for possible <- possibles do {
+      var merlinCount = 0
+      // How many times is Merlin claimed?
+      if (possible.length > 1) then merlinCount = merlinCount + (if possible(1)._2(0) == 's' then 1 else 0)
+      if (possible.length > 2) then merlinCount = merlinCount + (if possible(2)._2(0) == 's' then 1 else 0)
+      // Either add this as a new exemplar for an unseen Merlin count...
+      if !merlinCounts.contains(merlinCount) then {
+        merlinCounts = merlinCounts:+ merlinCount
+        reduced = reduced:+ (1, possible)
+      } else { // ... or increase the number of ways to get a preexistent Merlin count by 1.
+        val index = merlinCounts.indexOf(merlinCount)
+        val current = reduced(index)
+        reduced = reduced.updated(index, (current._1 + 1, current._2))
+      }
+    }
+    output = output + (key -> reduced)
+  }
+  output
+}
 
 /*for intention <- intentions do {
   intention match  {

@@ -342,9 +342,10 @@ def strategy_inverse(players: Int, strategyIdx: Int): List[Seq[Int]] = {
   //println(s"$P $Q $R")
   //runGame(game_mode = GameType.MerlinTwoMords)
   for g <- List(GameType.Resistance, GameType.MerlinTwoMords, GameType.MerlinOnly) do {
-    var result = generateAllPossibleReportLists(5, g)
-    var intent = getPossibleSpyIntentions(g)
-    var map = mapSpyIntentionsToOutcomeCategories(5, g, intent, result)
+    val result = generateAllPossibleReportLists(5, g)
+    val intent = getPossibleSpyIntentions(g)
+    val map = mapSpyIntentionsToOutcomeCategories(5, g, intent, result)
+    val reducedMap = reduceSpyIntentionsMap(map)
     println(s"$g")
     // Print out the reports each player (merlin, spy1, spy2) can generate
     println("Possible reports for each player: ")
@@ -359,13 +360,29 @@ def strategy_inverse(players: Int, strategyIdx: Int): List[Seq[Int]] = {
     // Print the intents the spies can have for this game
     println(s"Possible intents: $intent")
     // Print the reports consistent with those intents
+    println("MAP")
     for key <- map.keys do {
       println(s"$key:")
       for i <- map(key) do {
         print("\tList: ")
         for j <- i do {
-          val temp = j._2.mkString("Array(", ", ", ")")
+          val temp = j._2.mkString("(", ", ", ")")
           print(s"$temp ")
+        }
+        println()
+      }
+    }
+    // Print the reduced version of the map.
+    println("REDUCED MAP")
+    for key <- reducedMap.keys do {
+      println(s"\t$key:")
+      for outcome <- reducedMap(key) do {
+        val count = outcome._1
+        val repList: List[Report] = outcome._2
+        print(s"\t\t$count ")
+        for rep <- repList do {
+          val repText = rep._2.mkString("(", ", ", ")")
+          print(s"$repText ")
         }
         println()
       }
