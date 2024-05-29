@@ -362,9 +362,9 @@ def strategy_inverse(players: Int, strategyIdx: Int): List[Seq[Int]] = {
     // Print the reports consistent with those intents
     println("MAP")
     for key <- map.keys do {
-      println(s"$key:")
+      println(s"\t$key:")
       for i <- map(key) do {
-        print("\tList: ")
+        print("\t\tList: ")
         for j <- i do {
           val temp = j._2.mkString("(", ", ", ")")
           print(s"$temp ")
