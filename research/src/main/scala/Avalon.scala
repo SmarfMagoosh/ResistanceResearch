@@ -6,26 +6,27 @@ object GameType extends Enumeration {
 
 object Intentions extends Enumeration {
   type Intentions = Value
-  val NoReports,                // Neither spy reports
-  OneReportJustMe,              // One spy claims only himself as Merlin
-  TwoReportsJustMe,             // Both spies claim only themselves as Merlin
-  OneReportSpyOther,            // One spy claims himself as Merlin, other spy + somebody as spies
-  OneReportTwoOthers,           // One spy claims himself as Merlin, two non-spies as spies
-  TwoReportsSpySameOther,       // Both spies claim themselves as Merlin, the other spy as a spy, and some shared other
-                                //  as a spy.
+  val NoReports, // Neither spy reports
+  OneReportJustMe, // One spy claims only himself as Merlin
+  TwoReportsJustMe, // Both spies claim only themselves as Merlin
+  OneReportSpyOther, // One spy claims himself as Merlin, other spy + somebody as spies
+  OneReportTwoOthers, // One spy claims himself as Merlin, two non-spies as spies
+  TwoReportsSpySameOther, // Both spies claim themselves as Merlin, the other spy as a spy, and some shared other
+  //  as a spy.
   TwoReportsSpyDifferentOthers, // Both spies claim themselves as Merlin, the other spy as a spy, and different others
-                                // as spies.
-  TwoReportsOneSpyThreeTotal,   // One player claims a spy + an other, the other spy claims two-non spies w/ overlap
-  TwoReportsOneSpyFourTotal,     // One player claims a spy + an other, the other spy claims two non-spies w/o overlap
-  TwoReportsTwoOthers,          // Both spies claim themselves as Merlin, the same two non-spies as spies
-  TwoReportsThreeOthers,        // Both spies claim themselves as Merlin, one common other, and one distinct other.
-  TwoReportsFourOthers = Value  // Both spies claim themselves as Merlin, and distinct pairs of non-spies. (Requires 6+ players)
+  // as spies.
+  TwoReportsOneSpyThreeTotal, // One player claims a spy + an other, the other spy claims two-non spies w/ overlap
+  TwoReportsOneSpyFourTotal, // One player claims a spy + an other, the other spy claims two non-spies w/o overlap
+  TwoReportsTwoOthers, // Both spies claim themselves as Merlin, the same two non-spies as spies
+  TwoReportsThreeOthers, // Both spies claim themselves as Merlin, one common other, and one distinct other.
+  TwoReportsFourOthers = Value // Both spies claim themselves as Merlin, and distinct pairs of non-spies. (Requires 6+ players)
 }
 
 /**
  * 'm' = Merlin
  * 'n' = nothing
  * 's' = spy
+ *
  * @return
  */
 def report_possibilities: (Int, GameType.GameType) => List[List[Report]] = {
@@ -96,7 +97,7 @@ def generateAllPossibleReportLists(numPlayers: Int, gameType: GameType.GameType)
     var assertions: List[Char] = List()
     // Baseline empty assertion
     for j <- 0 until numPlayers do {
-      assertions = assertions:+ 'n'
+      assertions = assertions :+ 'n'
     }
     // Report ourselves as Merlin
     assertions = assertions.updated(i, 'm')
@@ -107,7 +108,7 @@ def generateAllPossibleReportLists(numPlayers: Int, gameType: GameType.GameType)
       }
     }
     val rep = Report(i, assertions.toArray)
-    merlinReports = merlinReports:+ rep
+    merlinReports = merlinReports :+ rep
   }
   // Get all spy reports
   // Here's the number of people a spy should claim as spies
@@ -119,26 +120,28 @@ def generateAllPossibleReportLists(numPlayers: Int, gameType: GameType.GameType)
   for i <- spies do {
     index += 1
     // All reports by one spy in one list.
-    spyReports = spyReports:+ List()
-    var assertions: List[Char] = List()
-    // Baseline empty assertion
-    for j <- 0 until numPlayers do {
-      assertions = assertions :+ 'n'
-    }
-    // Report ourselves as Merlin
-    assertions = assertions.updated(i, 'm')
-    //Report an appropriate number of spies, excluding ourselves.
-    val possibleIndices = (0 until numPlayers).drop(i)
-    val possibleSpyClaims = possibleIndices.combinations(nonMordSpies).toArray
-    for j: IndexedSeq[Int] <- possibleSpyClaims do {
-      for k: Int <- j do {
-        assertions = assertions.updated(k, 's')
+    spyReports = spyReports :+ List()
+    if gameType != GameType.Resistance then {
+      var assertions: List[Char] = List()
+      // Baseline empty assertion
+      for j <- 0 until numPlayers do {
+        assertions = assertions :+ 'n'
       }
-      val rep = Report(i, assertions.toArray)
-      spyReports = spyReports.updated(index, spyReports(index):+ rep)
-      // Remove the particular people we accused as spies
-      for k: Int <- j do {
-        assertions = assertions.updated(k, 'n')
+      // Report ourselves as Merlin
+      assertions = assertions.updated(i, 'm')
+      //Report an appropriate number of spies, excluding ourselves.
+      val possibleIndices = (0 until numPlayers).filter(z => z != i)
+      val possibleSpyClaims = possibleIndices.combinations(nonMordSpies).toArray
+      for j: IndexedSeq[Int] <- possibleSpyClaims do {
+        for k: Int <- j do {
+          assertions = assertions.updated(k, 's')
+        }
+        val rep = Report(i, assertions.toArray)
+        spyReports = spyReports.updated(index, spyReports(index) :+ rep)
+        // Remove the particular people we accused as spies
+        for k: Int <- j do {
+          assertions = assertions.updated(k, 'n')
+        }
       }
     }
   }
@@ -202,7 +205,7 @@ def twoListProduct(one: List[Report], two: List[Report]): List[List[Report]] = {
   var combo: List[List[Report]] = List.empty
   for i <- one do {
     for j <- two do {
-      combo = combo:+ List(i, j)
+      combo = combo :+ List(i, j)
     }
   }
   combo
@@ -213,7 +216,7 @@ def threeListProduct(one: List[Report], two: List[Report], three: List[Report]):
   for i <- one do {
     for j <- two do {
       for k <- three do {
-        combo = combo:+ List(i, j, k)
+        combo = combo :+ List(i, j, k)
       }
     }
   }
@@ -265,23 +268,29 @@ def countUniqueClaimedSpies(rep1: Report, rep2: Report): Int = {
   count
 }
 
+def getMapSafely(mapping: Map[Intentions.Intentions, List[List[Report]]], key: Intentions.Intentions):
+        List[List[Report]] = {
+  if mapping.contains(key) then mapping(key) else List()
+}
+
 /**
  * THIS ONE MIGHT ACTUALLY WORK. Given all the reports a spy could conceivably give, it divides them into a mapping
- *  of spy intentions to the reports those intentions could in theory produce. I think we can use this to then figure
- *  out, for a given intention, the odds of different kinds of outcomes. It needs some additional preprocessing
- *  to eliminate, e.g., duplicate results with the spies reversed. Then we can count, for a given intention,
- *  how many outcomes produce a given circumstance ('whoops, claimed merlin') and prep a report for each of those.
- *  Bonus: I *think* this is straightforwardly extensible for Percival etc.
+ * of spy intentions to the reports those intentions could in theory produce. I think we can use this to then figure
+ * out, for a given intention, the odds of different kinds of outcomes. It needs some additional preprocessing
+ * to eliminate, e.g., duplicate results with the spies reversed. Then we can count, for a given intention,
+ * how many outcomes produce a given circumstance ('whoops, claimed merlin') and prep a report for each of those.
+ * Bonus: I *think* this is straightforwardly extensible for Percival etc.
+ *
  * @param numPlayers The number of players in the game.
- * @param gameType The type of game, e.g., pure Resistance, Merlin only, etc.
+ * @param gameType   The type of game, e.g., pure Resistance, Merlin only, etc.
  * @param intentions The list of all intentions the spies could have for the given game type
- * @param possibles The full set of possible reports the spies could produce
+ * @param possibles  The full set of possible reports the spies could produce
  * @return A mapping from intentions consistent with the given game to possible reports produced by that intention
  */
 def mapSpyIntentionsToOutcomeCategories(numPlayers: Int, gameType: GameType.GameType,
                                         intentions: List[Intentions.Intentions],
                                         possibles: List[List[Report]]):
-                                          Map[Intentions.Intentions, List[List[Report]]] = {
+Map[Intentions.Intentions, List[List[Report]]] = {
   var mapping: Map[Intentions.Intentions, List[List[Report]]] = Map()
 
   var merlins: List[Int] = List()
@@ -290,7 +299,7 @@ def mapSpyIntentionsToOutcomeCategories(numPlayers: Int, gameType: GameType.Game
   // The true array of identities
   var actual: Array[Char] = Array()
   for i <- 0 until numPlayers do {
-    actual = actual:+ 'n'
+    actual = actual :+ 'n'
   }
 
   if (gameType == GameType.Resistance) {
@@ -316,96 +325,95 @@ def mapSpyIntentionsToOutcomeCategories(numPlayers: Int, gameType: GameType.Game
   for merlinRep <- possibles(0) do {
     for spy1Rep <- possibles(1) do {
       // Single spy reports, based on contents of that report
-      // Nothing reported
+      // Nothing reported except your own identity
       if countTotalClaimedSpies(spy1Rep) == 0 then {
-        var current = mapping(Intentions.OneReportJustMe)
+        var current = getMapSafely(mapping, Intentions.OneReportJustMe)
         val nextReport = List(merlinRep, spy1Rep)
-        current = current:+ nextReport
+        current = current :+ nextReport
         mapping = mapping + (Intentions.OneReportJustMe -> current)
       }
       // Reported an actual spy + somebody
       else if countSpiesClaimedAsSpies(spy1Rep, actual) == 1 then {
-        var current = mapping(Intentions.OneReportSpyOther)
+        var current = getMapSafely(mapping, Intentions.OneReportSpyOther)
         val nextReport = List(merlinRep, spy1Rep)
-        current = current:+ nextReport
-        mapping = mapping + (Intentions.OneReportSpyOther-> current)
+        current = current :+ nextReport
+        mapping = mapping + (Intentions.OneReportSpyOther -> current)
       }
       // Reported two non-spies
       else if countSpiesClaimedAsSpies(spy1Rep, actual) == 0 then {
-        var current = mapping(Intentions.OneReportTwoOthers)
+        var current = getMapSafely(mapping, Intentions.OneReportTwoOthers)
         val nextReport = List(merlinRep, spy1Rep)
-        current = current:+ nextReport
+        current = current :+ nextReport
         mapping = mapping + (Intentions.OneReportTwoOthers -> current)
       }
 
       // Both spies reporting
       for spy2Rep <- possibles(2) do {
-        // Nothing reported
+        // Nothing reported except your own identity
         if countTotalClaimedSpies(spy1Rep) == 0 && countTotalClaimedSpies(spy2Rep) == 0 then {
-          var current = mapping(Intentions.TwoReportsJustMe)
+          var current = getMapSafely(mapping, Intentions.TwoReportsJustMe)
           val nextReport = List(merlinRep, spy1Rep, spy2Rep)
-          current = current:+ nextReport
+          current = current :+ nextReport
           mapping = mapping + (Intentions.TwoReportsJustMe -> current)
         }
-          // Both claim a spy and one shared other
-        else if countUniqueClaimedSpies(spy1Rep, spy2Rep) == 3 && countTotalClaimedSpies(spy1Rep) == 1
-          && countTotalClaimedSpies(spy2Rep) == 1 then {
-          var current = mapping(Intentions.TwoReportsSpySameOther)
+        // Both claim a spy and one shared other
+        else if countUniqueClaimedSpies(spy1Rep, spy2Rep) == 3 && countSpiesClaimedAsSpies(spy1Rep, actual) == 1
+          && countSpiesClaimedAsSpies(spy2Rep, actual) == 1 then {
+          var current = getMapSafely(mapping, Intentions.TwoReportsSpySameOther)
           val nextReport = List(merlinRep, spy1Rep, spy2Rep)
-          current = current:+ nextReport
+          current = current :+ nextReport
           mapping = mapping + (Intentions.TwoReportsSpySameOther -> current)
         }
         // Both claim a spy and unique others
-        else if countUniqueClaimedSpies(spy1Rep, spy2Rep) == 4 && countTotalClaimedSpies(spy1Rep) == 1
-          && countTotalClaimedSpies(spy2Rep) == 1 then {
-          var current = mapping(Intentions.TwoReportsSpyDifferentOthers)
+        else if countUniqueClaimedSpies(spy1Rep, spy2Rep) == 4 && countSpiesClaimedAsSpies(spy1Rep, actual) == 1
+          && countSpiesClaimedAsSpies(spy2Rep, actual) == 1 then {
+          var current = getMapSafely(mapping, Intentions.TwoReportsSpyDifferentOthers)
           val nextReport = List(merlinRep, spy1Rep, spy2Rep)
-          current = current:+ nextReport
+          current = current :+ nextReport
           mapping = mapping + (Intentions.TwoReportsSpyDifferentOthers -> current)
         }
         // Both claim the same pair of others
-        else if countUniqueClaimedSpies(spy1Rep, spy2Rep) == 2 && countTotalClaimedSpies(spy1Rep) == 0
-          && countTotalClaimedSpies(spy2Rep) == 0 then {
-          var current = mapping(Intentions.TwoReportsTwoOthers)
+        else if countUniqueClaimedSpies(spy1Rep, spy2Rep) == 2 && countSpiesClaimedAsSpies(spy1Rep, actual) == 0
+          && countSpiesClaimedAsSpies(spy2Rep, actual) == 0 then {
+          var current = getMapSafely(mapping, Intentions.TwoReportsTwoOthers)
           val nextReport = List(merlinRep, spy1Rep, spy2Rep)
-          current = current:+ nextReport
+          current = current :+ nextReport
           mapping = mapping + (Intentions.TwoReportsTwoOthers -> current)
         }
         // Both claim one shared person and one unique person
-        else if countUniqueClaimedSpies(spy1Rep, spy2Rep) == 3 && countTotalClaimedSpies(spy1Rep) == 0
-          && countTotalClaimedSpies(spy2Rep) == 0 then {
-          var current = mapping(Intentions.TwoReportsThreeOthers)
+        else if countUniqueClaimedSpies(spy1Rep, spy2Rep) == 3 && countSpiesClaimedAsSpies(spy1Rep, actual) == 0
+          && countSpiesClaimedAsSpies(spy2Rep, actual) == 0 then {
+          var current = getMapSafely(mapping, Intentions.TwoReportsThreeOthers)
           val nextReport = List(merlinRep, spy1Rep, spy2Rep)
-          current = current:+ nextReport
+          current = current :+ nextReport
           mapping = mapping + (Intentions.TwoReportsThreeOthers -> current)
         }
 
         // Both claim a unique pair of non-spies
-        else if countUniqueClaimedSpies(spy1Rep, spy2Rep) == 4 && countTotalClaimedSpies(spy1Rep) == 0
-          && countTotalClaimedSpies(spy2Rep) == 0 then {
-          var current = mapping(Intentions.TwoReportsFourOthers)
+        else if countUniqueClaimedSpies(spy1Rep, spy2Rep) == 4 && countSpiesClaimedAsSpies(spy1Rep, actual) == 0
+          && countSpiesClaimedAsSpies(spy2Rep, actual) == 0 then {
+          var current = getMapSafely(mapping, Intentions.TwoReportsFourOthers)
           val nextReport = List(merlinRep, spy1Rep, spy2Rep)
-          current = current:+ nextReport
+          current = current :+ nextReport
           mapping = mapping + (Intentions.TwoReportsFourOthers -> current)
         }
         // Only one guy claims a spy; one shared non-spy claim
-        else if countUniqueClaimedSpies(spy1Rep, spy2Rep) == 3 && ((countTotalClaimedSpies(spy1Rep) == 1
-          && countTotalClaimedSpies(spy2Rep) == 0) || (countTotalClaimedSpies(spy1Rep) == 0
-          && countTotalClaimedSpies(spy2Rep) == 1)) then {
-          var current = mapping(Intentions.TwoReportsOneSpyThreeTotal)
+        else if countUniqueClaimedSpies(spy1Rep, spy2Rep) == 3 && ((countSpiesClaimedAsSpies(spy1Rep, actual) == 1
+          && countSpiesClaimedAsSpies(spy2Rep, actual) == 0) || (countSpiesClaimedAsSpies(spy1Rep, actual) == 0
+          && countSpiesClaimedAsSpies(spy2Rep, actual) == 1)) then {
+          var current = getMapSafely(mapping, Intentions.TwoReportsOneSpyThreeTotal)
           val nextReport = List(merlinRep, spy1Rep, spy2Rep)
           current = current :+ nextReport
           mapping = mapping + (Intentions.TwoReportsOneSpyThreeTotal -> current)
         }
         // Only one guy claims a spy; no shared non-spy claims
-
-        else if countUniqueClaimedSpies(spy1Rep, spy2Rep) == 4 && ((countTotalClaimedSpies(spy1Rep) == 1
-          && countTotalClaimedSpies(spy2Rep) == 0) || (countTotalClaimedSpies(spy1Rep) == 0
-          && countTotalClaimedSpies(spy2Rep) == 1)) then {
-          var current = mapping(Intentions.TwoReportsOneSpyThreeTotal)
+        else if countUniqueClaimedSpies(spy1Rep, spy2Rep) == 4 && ((countSpiesClaimedAsSpies(spy1Rep, actual) == 1
+          && countSpiesClaimedAsSpies(spy2Rep, actual) == 0) || (countSpiesClaimedAsSpies(spy1Rep, actual) == 0
+          && countSpiesClaimedAsSpies(spy2Rep, actual) == 1)) then {
+          var current = getMapSafely(mapping, Intentions.TwoReportsOneSpyFourTotal)
           val nextReport = List(merlinRep, spy1Rep, spy2Rep)
           current = current :+ nextReport
-          mapping = mapping + (Intentions.TwoReportsOneSpyThreeTotal -> current)
+          mapping = mapping + (Intentions.TwoReportsOneSpyFourTotal -> current)
         }
       }
     }
@@ -414,53 +422,53 @@ def mapSpyIntentionsToOutcomeCategories(numPlayers: Int, gameType: GameType.Game
 }
 
 
-  /*for intention <- intentions do {
-    intention match  {
-      case Intentions.NoReports => // No reports - just tell me what Merlin said
-        mapping = mapping + (intention -> List(possibles(0)))
-      case Intentions.OneReportJustMe =>  // Merlin plus first spy, WLOG
-        val product = twoListProduct(possibles(0), possibles(1))
-        mapping = mapping + (intention -> product)
-      case Intentions.TwoReportsJustMe => // Merlin plus both spies
-        val product = threeListProduct(possibles(0), possibles(1), possibles(2))
-        mapping = mapping + (intention -> product)
-      case Intentions.OneReportSpyOther => {
-        var pruned1: List[Report] = List()
-        for rep <- possibles(1) do {
-          val repArray = rep._2
-          if spies.nonEmpty && (repArray(spies(0)) == 's' || repArray(spies(1)) == 's') then {
-            pruned1 = pruned1:+ rep
-          }
-        }
-        val product = twoListProduct(possibles(0), pruned1)
-        mapping = mapping + (intention -> product)
-      }
-      case Intentions.OneReportTwoOthers => {
-        var pruned1: List[Report] = List()
-        for rep <- possibles(1) do {
-          val repArray = rep._2
-          if spies.nonEmpty && (repArray(spies(0)) != 's' || repArray(spies(1)) != 's') then {
-            pruned1 = pruned1:+ rep
-          }
-        }
-        val product = twoListProduct(possibles(0), pruned1)
-        mapping = mapping + (intention -> product)
-      }
-      case Intentions.TwoReportsSpySameOther => {
-        val product = twoListProduct(possibles(1), possibles(2))
-        for repPair <- product do {
+/*for intention <- intentions do {
+  intention match  {
+    case Intentions.NoReports => // No reports - just tell me what Merlin said
+      mapping = mapping + (intention -> List(possibles(0)))
+    case Intentions.OneReportJustMe =>  // Merlin plus first spy, WLOG
+      val product = twoListProduct(possibles(0), possibles(1))
+      mapping = mapping + (intention -> product)
+    case Intentions.TwoReportsJustMe => // Merlin plus both spies
+      val product = threeListProduct(possibles(0), possibles(1), possibles(2))
+      mapping = mapping + (intention -> product)
+    case Intentions.OneReportSpyOther => {
+      var pruned1: List[Report] = List()
+      for rep <- possibles(1) do {
+        val repArray = rep._2
+        if spies.nonEmpty && (repArray(spies(0)) == 's' || repArray(spies(1)) == 's') then {
+          pruned1 = pruned1:+ rep
         }
       }
-      case Intentions.TwoReportsSpyDifferentOthers =>
-      case Intentions.TwoReportsTwoOthers =>
-      case Intentions.TwoReportsThreeOthers =>
-      case Intentions.TwoReportsFourOthers =>
+      val product = twoListProduct(possibles(0), pruned1)
+      mapping = mapping + (intention -> product)
     }
+    case Intentions.OneReportTwoOthers => {
+      var pruned1: List[Report] = List()
+      for rep <- possibles(1) do {
+        val repArray = rep._2
+        if spies.nonEmpty && (repArray(spies(0)) != 's' || repArray(spies(1)) != 's') then {
+          pruned1 = pruned1:+ rep
+        }
+      }
+      val product = twoListProduct(possibles(0), pruned1)
+      mapping = mapping + (intention -> product)
+    }
+    case Intentions.TwoReportsSpySameOther => {
+      val product = twoListProduct(possibles(1), possibles(2))
+      for repPair <- product do {
+      }
+    }
+    case Intentions.TwoReportsSpyDifferentOthers =>
+    case Intentions.TwoReportsTwoOthers =>
+    case Intentions.TwoReportsThreeOthers =>
+    case Intentions.TwoReportsFourOthers =>
   }
-
-  Map.empty
 }
- */
+
+Map.empty
+}
+*/
 
 /*
 /**
