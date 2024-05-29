@@ -1,3 +1,5 @@
+import scala.annotation.tailrec
+
 /**
  * Possible configurations of spies
  *
@@ -74,31 +76,27 @@ extension (n: Int)
  * a tuple of ints which we can now perform arithmetic operations on
  */
 extension (rational: (Int, Int))
-  def *(o: (Int, Int)): (Int, Int) = reduce(rational._1 * o._1, rational._2 * o._2)
+  def *(o: (Int, Int)): (Int, Int) = (rational._1 * o._1, rational._2 * o._2).reduce
   def /(o: (Int, Int)): (Int, Int) = rational * o.swap
-  def +(o: (Int, Int)): (Int, Int) = reduce((rational._1 * o._2) + (rational._2 * o._1), rational._2 * o._2)
+  def +(o: (Int, Int)): (Int, Int) = ((rational._1 * o._2) + (rational._2 * o._1), rational._2 * o._2).reduce
   def -(o: (Int, Int)): (Int, Int) = rational + (-o._1, o._2)
   
-  def reduce(numerator: Int, denominator: Int): (Int, Int) = {
+  def reduce: (Int, Int) = {
+    @tailrec def gcd(a: Int, b: Int): Int = {
+      if a != b then a else {
+        if a > b then gcd(a - b, b) else gcd(a, b - a)
+      }
+    }
+    val numerator = rational._1
+    val denominator = rational._2
     if numerator == 0 then {
       (0, 1)
+    } else {
+      val negative: Boolean = ((numerator < 0) || (denominator < 0)) && !((numerator < 0) && denominator < 0)
+      val num = Math.abs(numerator)
+      val den = Math.abs(denominator)
+      val scale = if negative then -1 else 1
+      val divisor = gcd(num, den)
+      (scale * num / divisor, den / divisor)
     }
-    val negative: Boolean = ((numerator < 0) || (denominator < 0)) && !((numerator < 0 ) && denominator < 0)
-    var num = Math.abs(numerator)
-    var den = Math.abs(denominator)
-    var divisor = gcd(num, den)
-    num /= divisor
-    den /= divisor
-    if negative then num *= -1
-    (num, den)
-  }
-  
-  def gcd(a: Int, b: Int): Int = {
-    var aVar = a
-    var bVar = b
-    while aVar != bVar do {
-      if aVar > bVar then aVar = aVar-bVar
-      else bVar = bVar-aVar
-    }
-    aVar
   }
