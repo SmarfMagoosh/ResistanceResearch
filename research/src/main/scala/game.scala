@@ -43,7 +43,7 @@ class Game(
    * @param verbose True if insight print statements should fire
    * @return Nash equilibrium value
    */
-  def findPayoff(depth: Int = 1, maxDepth: Int = 3, verbose: Boolean = false): Double = {
+  def findPayoff(depth: Int = 1, maxDepth: Int = 3, verbose: Boolean = false): (Int, Int) = {
     if verbose then println(s"")
 
     // filter off worlds at the beginning
@@ -55,14 +55,14 @@ class Game(
     val equilibriums = for action <- actions yield {
       // split possible worlds into successes and fails given an action
       val (successes, fails) = poss_worlds.partition(actionSucceeds(action))
-      if verbose then println(s"${tabs(depth)} Depth: $depth, $action ${successes.length.doubleValue / poss_worlds.length}")
+      if verbose then println(s"${tabs(depth)} Depth: $depth, $action ${successes.length}/${poss_worlds.length}")
 
       val hist = action :: history
       if depth == maxDepth then {
         // if the game is over, return the probability that the action succeeded
-        val ret = successes.length.doubleValue / poss_worlds.length
+        val ret = (successes.length, poss_worlds.length)
         val strat = strategy(num_players, hist)
-        winRates(strat) = ret
+        winRates(strat) = ret._1.doubleValue / ret._2
         assignGuessRates(hist)
         ret
       } else {
@@ -78,7 +78,7 @@ class Game(
           winRates,
           guessRates
         ).findPayoff(depth + 1, maxDepth, verbose)
-        val ret = ((action_eq * fails.length) / poss_worlds.length) + (1.0 * successes.length / poss_worlds.length)
+        val ret = ((action_eq * (fails.length, 1)) / (poss_worlds.length, 1)) + (successes.length, poss_worlds.length)
         ret
       }
     }
