@@ -7,13 +7,6 @@
  * 4 -> mordred + percival + morgana
  * 5 -> morgana + percival
  *
- * Report character reference
- * m -> merlin
- * b -> bad
- * g -> good (or at least not known to be bad)
- * p -> percival
- * e -> morgana or merlin
- *
  * Without loss of generality we always assume the following about role assignment:
  * player 0 is merlin.
  * when present, we assume percival to be player 3
@@ -21,6 +14,20 @@
  *  - if morgana is present she is player 1
  *  - if one mordred is present he is player 2
  */
+
+/**
+ * Code definitions of a report
+ * n -> no comment
+ * g -> good
+ * b -> bad
+ * m -> merlin
+ * p -> percival
+ * e -> morgana or merlin (for percival)
+ *
+ * It can be assumed that all players know the assertions of a report,
+ * but only the strategist knows the origin
+ */
+case class Report(origin: Int, assertions: Array[Char])
 
 /**
  * Player 0 is merlin so he will always submit a truthful report about it
