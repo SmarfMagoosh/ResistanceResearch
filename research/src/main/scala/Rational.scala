@@ -1,39 +1,59 @@
+import scala.annotation.{tailrec, targetName}
+
 /**
- * represents a rational number as a numerator/denominator pair to prevent floating point
- * round off errors.
- * These extension methods allow arithmetic operations to be performed on the tuple
+ *
+ * @param num
+ * @param den
  */
-extension (rational: (Int, Int))
-  // rational to rational operations
-  def *(o: (Int, Int)): (Int, Int) = (rational._1 * o._1, rational._2 * o._2).reduce
+case class Rational(num: Int, den: Int) extends Ordered[Rational] {
+  require(den != 0)
 
-  def /(o: (Int, Int)): (Int, Int) = rational * o.swap
+  @targetName("Negation")
+  def unary_- : Rational = Rational(-num, den)
 
-  def +(o: (Int, Int)): (Int, Int) = ((rational._1 * o._2) + (rational._2 * o._1), rational._2 * o._2).reduce
+  @targetName("Addition")
+  def +(o: Rational): Rational = Rational((num * o.den) + (o.num * den), den * o.den).reduce
 
-  def -(o: (Int, Int)): (Int, Int) = rational + (-o._1, o._2)
+  @targetName("Subtraction")
+  def -(o: Rational): Rational = this + -o
 
-  // rational to integer operations
-  def *(o: Int): (Int, Int) = (rational._1 * o, rational._2).reduce
+  @targetName("Multiplication")
+  def *(o: Rational): Rational = Rational(num * o.num, den * o.den).reduce
 
-  def /(o: Int): (Int, Int) = (rational._1, rational._2 * o).reduce
+  @targetName("Division")
+  def /(o: Rational): Rational = this * o.reciprocal
 
-  def + (o: Int): (Int, Int) = (rational._1 + (o * rational._2), rational._2).reduce
+  @targetName("Addition")
+  def +(o: Int): Rational = Rational(num + (o * den), den).reduce
 
-  def - (o: Int): (Int, Int) = rational + (-1 * o)
+  @targetName("Subtraction")
+  def -(o: Int): Rational = this + -o
 
-  // finds greatest common divisor of the numerator and denominator for simplification purposes
-  def gcd: Int = {
-    if rational._2 == 0 then rational._1 else (rational._2, rational._1 % rational._2).gcd
+  @targetName("Multiplication")
+  def *(o: Int): Rational = Rational(num * o, den).reduce
+
+  @targetName("Division")
+  def /(o: Int): Rational = Rational(num, den * o).reduce
+
+  private def gcd: Int = {
+    @tailrec def helper(a: Int, b: Int): Int = if b == 0 then a else helper(b, a % b)
+    helper(num, den)
   }
 
-  // fraction simplification algorithm
-  def reduce: (Int, Int) = {
-    rational match
-      case (0, _) => (0, 1) // rational number is 0, denominator does not matter
-      case (_, 0) => rational // denominator is 0, will be handled in eval function
-      case _ => (rational._1 / rational.gcd, rational._2 / rational.gcd) // divide top and bottom by gcd
-  }
+  private def reduce: Rational = this match
+    case Rational(0, _) => Rational(0, 1)
+    case Rational(x, y) => ((i: Int) => Rational(num / i, den / i))(gcd)
 
-  // evaluate the rational number
-  def eval: Double = rational._1.toDouble / rational._2
+  private def reciprocal: Rational = this match
+    case Rational(0, _) => throw new ArithmeticException("Rational number with 0 in the denominator")
+    case Rational(num, den) => Rational(den, num)
+
+  def eval: Double = num.toDouble / den
+
+  // for ordering
+  override def compare(that: Rational): Int = (num * that.den) compare (den * that.num)
+}
+
+object / {
+  def unapply(ratio: Rational): (Int, Int) = (ratio.num, ratio.den)
+}

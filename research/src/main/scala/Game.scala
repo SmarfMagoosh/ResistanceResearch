@@ -1,39 +1,15 @@
-
-import GameType.GameType
-
-import scala.language.postfixOps
-
-
+import GameTypes.*
+import Roles.*
+import Intentions.*
 
 class Game(
-            val game_mode: GameType = GameType.Resistance,
-            val num_players: Int = 5,
-            var poss_worlds: List[(Int, Int)] = worlds(5),
-            val reports: List[Report] = List.empty,
-            val history: List[Seq[Int]] = List.empty,
-            val winRates: Array[Double],
-            val guessRates: Array[Array[Double]]) {
-
-  /**
-   * Generalizing function to report the size of teams for different player counts.
-   *
-   * @param players The number of players
-   * @return The team sizes - [3,3,3] for 5 players, or [3,4,3,4] for 6 players
-   */
-  private def getTeamSizesForPlayers(players: Int): List[Int] = {
-    if players == 5 then List(3, 3, 3)
-    else List(3, 4, 3, 4)
-  }
-
-  /**
-   * Generalizing function to report the number of rounds for different player counts
-   *
-   * @param players The number of players
-   * @return The number of rounds - 3 for 5 players, or 4 for 6 players
-   */
-  private def getNumMissionsForPlayers(players: Int): Int = {
-    getTeamSizesForPlayers(players).length
-  }
+  val game_mode: GameType = Resistance,
+  val num_players: Int = 5,
+  var poss_worlds: List[(Int, Int)] = worlds(5),
+  val reports: List[Report] = List.empty,
+  val history: List[Seq[Int]] = List.empty,
+  val winRates: Array[Double],
+  val guessRates: Array[Array[Double]]) {
 
   /**
    * Calculates the payoff for a particular pure strategy assuming optimal play.
@@ -43,7 +19,7 @@ class Game(
    * @param verbose True if insight print statements should fire
    * @return Nash equilibrium value
    */
-  def findPayoff(depth: Int = 1, maxDepth: Int = 3, verbose: Boolean = false): (Int, Int) = {
+  def findPayoff(depth: Int = 1, maxDepth: Int = 3, verbose: Boolean = false): Rational = {
     if verbose then println(s"")
 
     // filter off worlds at the beginning
@@ -60,7 +36,7 @@ class Game(
       val hist = action :: history
       if depth == maxDepth then {
         // if the game is over, return the probability that the action succeeded
-        val ret = (successes.length, poss_worlds.length)
+        val ret = Rational(successes.length, poss_worlds.length)
         val strat = strategy(num_players, hist)
         winRates(strat) = ret._1.doubleValue / ret._2
         assignGuessRates(hist)
@@ -78,8 +54,7 @@ class Game(
           winRates,
           guessRates
         ).findPayoff(depth + 1, maxDepth, verbose)
-        val ret = ((action_eq * (fails.length, 1)) / (poss_worlds.length, 1)) + (successes.length, poss_worlds.length)
-        ret
+        action_eq * Rational(fails.length, poss_worlds.length) + Rational(successes.length, poss_worlds.length)
       }
     }
     val ret = equilibriums.max
@@ -95,12 +70,8 @@ class Game(
    * @return The probability of a successful Merlin guess, if Merlin is in the group, or 0 otherwise.
    */
   private def merlinGuessed(group: Seq[Int]): Double = {
-    if !(group contains 0) || (game_mode == GameType.Resistance) then 0.0
-    else {
-      1.0 / group.length
-    }
+    if !(group contains 0) || (game_mode == Resistance) then 0.0 else 1.0 / group.length
   }
-
 
   /**
    * After dividing players into equivalence classes based on the history, calculates the odds of
@@ -108,7 +79,7 @@ class Game(
    * @param hist A history of all missions sent so far
    */
   private def assignGuessRates(hist: List[Seq[Int]]): Unit = {
-    val numMissions = getNumMissionsForPlayers(players = num_players)
+    val numMissions = getNumMissions(num_players)
     val numEqClasses = Math.pow(2, numMissions).toInt
     val eqClasses = createEquivalenceClasses(hist, numMissions)
 
@@ -186,7 +157,7 @@ class Game(
    * @return
    */
   private def filter_worlds: List[(Int, Int)] = {
-    val merlins = reports.map(_.assertions.zipWithIndex.filter((c, _) => c == 'm').head._2)
+    val merlins = reports.map(_.assertions.zipWithIndex.filter((r, _) => r == Roles.Merlin).head._2)
 
     merlins.length match {
       case 0 => poss_worlds
@@ -223,7 +194,7 @@ class Game(
  * 0 -> resistance
  * 1 -> Merlin + 2 mordreds
  */
-def runGame(players: Int = 5, game_mode: GameType = GameType.Resistance, verbose: Boolean = false): Double = {
+def runGame(players: Int = 5, game_mode: GameType = Resistance, verbose: Boolean = false): Double = {
   val wr: Array[Double] = if players == 5 then {
     (0 until 1110).toArray.map(_ => 0.0)
   } else {
@@ -240,7 +211,7 @@ def runGame(players: Int = 5, game_mode: GameType = GameType.Resistance, verbose
     3
   }
   game_mode match
-    case GameType.Resistance =>
+    case Resistance =>
       val game = Game(
         num_players = players,
         poss_worlds = worlds(players),
@@ -341,52 +312,53 @@ def strategy_inverse(players: Int, strategyIdx: Int): List[Seq[Int]] = {
   //val R = strategy(5, List(Seq(2, 3, 4), Seq(2, 3, 4), Seq(2, 3, 4)))
   //println(s"$P $Q $R")
   //runGame(game_mode = GameType.MerlinTwoMords)
-  for g <- List(GameType.Resistance, GameType.MerlinTwoMords, GameType.MerlinOnly) do {
-    val result = generateAllPossibleReportLists(5, g)
-    val intent = getPossibleSpyIntentions(g)
-    val map = mapSpyIntentionsToOutcomeCategories(5, g, intent, result)
-    val reducedMap = reduceSpyIntentionsMap(map)
-    println(s"$g")
-    // Print out the reports each player (merlin, spy1, spy2) can generate
-    println("Possible reports for each player: ")
-    for i <- result do {
-      print("\tList: ")
-      for j <- i do {
-        val temp = j._2.mkString("Array(", ", ", ")")
-        print(s"$temp ")
-      }
-      println()
-    }
-    // Print the intents the spies can have for this game
-    println(s"Possible intents: $intent")
-    // Print the reports consistent with those intents
-    println("MAP")
-    for key <- map.keys do {
-      println(s"\t$key:")
-      for i <- map(key) do {
-        print("\t\tList: ")
-        for j <- i do {
-          val temp = j._2.mkString("(", ", ", ")")
-          print(s"$temp ")
-        }
-        println()
-      }
-    }
-    // Print the reduced version of the map.
-    println("REDUCED MAP")
-    for key <- reducedMap.keys do {
-      println(s"\t$key:")
-      for outcome <- reducedMap(key) do {
-        val count = outcome._1
-        val repList: List[Report] = outcome._2
-        print(s"\t\t$count ")
-        for rep <- repList do {
-          val repText = rep._2.mkString("(", ", ", ")")
-          print(s"$repText ")
-        }
-        println()
-      }
-    }
-    println()
-  }
+//  for g <- List(GameType.Resistance, GameType.MerlinTwoMords, GameType.MerlinOnly) do {
+//    val result = generateAllPossibleReportLists(5, g)
+//    val intent = getPossibleSpyIntentions(g)
+//    val map = mapSpyIntentionsToOutcomeCategories(5, g, intent, result)
+//    val reducedMap = reduceSpyIntentionsMap(map)
+//    println(s"$g")
+//    // Print out the reports each player (merlin, spy1, spy2) can generate
+//    println("Possible reports for each player: ")
+//    for i <- result do {
+//      print("\tList: ")
+//      for j <- i do {
+//        val temp = j._2.mkString("Array(", ", ", ")")
+//        print(s"$temp ")
+//      }
+//      println()
+//    }
+//    // Print the intents the spies can have for this game
+//    println(s"Possible intents: $intent")
+//    // Print the reports consistent with those intents
+//    println("MAP")
+//    for key <- map.keys do {
+//      println(s"\t$key:")
+//      for i <- map(key) do {
+//        print("\t\tList: ")
+//        for j <- i do {
+//          val temp = j._2.mkString("(", ", ", ")")
+//          print(s"$temp ")
+//        }
+//        println()
+//      }
+//    }
+//    // Print the reduced version of the map.
+//    println("REDUCED MAP")
+//    for key <- reducedMap.keys do {
+//      println(s"\t$key:")
+//      for outcome <- reducedMap(key) do {
+//        val count = outcome._1
+//        val repList: List[Report] = outcome._2
+//        print(s"\t\t$count ")
+//        for rep <- repList do {
+//          val repText = rep._2.mkString("(", ", ", ")")
+//          print(s"$repText ")
+//        }
+//        println()
+//      }
+//    }
+//    println()
+//  }
+  println(-1 choose 6)
 }
