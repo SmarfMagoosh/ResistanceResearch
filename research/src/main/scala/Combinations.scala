@@ -20,8 +20,9 @@ def worlds(players: Int): List[(Int, Int)] = {
  * @return list of possible configurations given a list of possible worlds
  */
 def three_man_missions(players: Int)(poss_worlds: List[(Int, Int)]): List[Seq[Int]] = {
-  poss_worlds.map((0 until players) diff _.toList)
-}
+  (0 until players).combinations(3).filter(mission => poss_worlds.exists(world => {
+    !(mission contains world._1) && !(mission contains world._2)
+  })).toList}
 
 /**
  * Possible configurations of 4 man missions
@@ -31,7 +32,9 @@ def three_man_missions(players: Int)(poss_worlds: List[(Int, Int)]): List[Seq[In
  * @return list of possible configurations given a list of possible worlds
  */
 def four_man_missions(players: Int)(poss_worlds: List[(Int, Int)]): List[Seq[Int]] = {
-  poss_worlds.map((0 until players) diff _.toList)
+  (0 until players).combinations(3).filter(mission => poss_worlds.exists(world => {
+    !(mission contains world._1) && !(mission contains world._2)
+  })).toList
 }
 
 /**

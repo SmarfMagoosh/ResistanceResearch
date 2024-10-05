@@ -3,11 +3,11 @@
  */
 object Roles extends Enumeration {
   type Role = Value
-  // the Nil Role is for a report that doesn't have anything to say about a particular person
-  val Merlin, Percival, Servant, Minion, Mordred, Morgana, Nil = Value
+  // the Null Role is for a report that doesn't have anything to say about a particular person
+  val Merlin, Percival, Servant, Minion, Mordred, Morgana, Null = Value
 
   // One character constants for code reduction
-  val N: Role = Roles.Nil
+  val N: Role = Roles.Null
   val M: Role = Roles.Merlin
   val P: Role = Roles.Percival
   val S: Role = Roles.Servant
@@ -31,9 +31,9 @@ object Intentions extends Enumeration {
   type Intention = Value
   val NoReports, // Neither spy reports
   OneReportJustMe, // One spy reports, no blame
+  TwoReportsJustMe, // Both spies reports, no blame
   OneReportSpyOther, // One spy reports, blame other spy + someone else
   OneReportTwoOthers, // One spy reports, blame 2 non-spies
-  TwoReportsJustMe, // Both spies reports, no blame
   TwoReportsSpySameOther, // Both spies report, blame other spy + shared other person
   TwoReportsSpyDifferentOthers, // Both spies report, blame the other spy and a different other
   TwoReportsOneSpyThreeTotal, // Both spies report, one blames spy + other, the other blames to people w/ overlap
@@ -65,7 +65,7 @@ extension (gameType: GameTypes.GameType)
 extension (role: Roles.Role)
   def toChar: Char = {
     role match
-      case Roles.Nil => 'N'
+      case Roles.Null => 'N'
       case Roles.Merlin => 'M'
       case Roles.Percival => 'P'
       case Roles.Servant => 'S'

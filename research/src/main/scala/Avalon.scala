@@ -67,7 +67,7 @@ def generateAllPossibleReportLists(numPlayers: Int, gameType: GameType): List[Li
   val merlinReport: Report = Report(0, Array.tabulate(numPlayers) {
     case 0 => Roles.Merlin
     case x if spies.contains(x) && !mordreds.contains(x) => Roles.Minion
-    case _ => Roles.Nil
+    case _ => Roles.Null
   })
 
   val spyReports: List[List[Report]] = spies.map(spy => {
@@ -79,7 +79,7 @@ def generateAllPossibleReportLists(numPlayers: Int, gameType: GameType): List[Li
       val assertions = Array.tabulate(numPlayers) {
         case x if spyClaim contains x => Roles.Minion
         case x if x == spy => Roles.Merlin
-        case _ => Roles.Nil
+        case _ => Roles.Null
       }
       Report(spy, assertions)
     })
@@ -171,7 +171,7 @@ def countSpiesClaimedAsSpies(rep: Report, actual: Array[Roles.Value]): Int = {
 }
 
 def countNonesClaimedAsSpies(rep: Report, actual: Array[Roles.Value]): Int = {
-  (rep.assertions zip actual).count(_ == Roles.Minion && _ == Roles.Nil)
+  (rep.assertions zip actual).count(_ == Roles.Minion && _ == Roles.Null)
 }
 
 def countNonSpiesClaimedAsSpies(rep: Report, actual: Array[Roles.Value]): Int = {

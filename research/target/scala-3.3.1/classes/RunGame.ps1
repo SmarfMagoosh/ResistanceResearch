@@ -17,4 +17,8 @@ foreach ($file in $txtFiles){
 
 # Run the python file in the outer folder
 Set-Location $PSScriptRoot\..\..\
-python gametheory.py
+
+# Run all test python file for each text file
+foreach ($file in $txtFiles){
+    python gametheory.py --name $file.FullName
+}

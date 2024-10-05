@@ -2,8 +2,9 @@ import scala.annotation.{tailrec, targetName}
 
 /**
  *
- * @param num
- * @param den
+ *
+ * @param num the numerator of the rational number
+ * @param den the denominator of the rational number
  */
 case class Rational(num: Int, den: Int) extends Ordered[Rational] {
   require(den != 0)
@@ -52,8 +53,4 @@ case class Rational(num: Int, den: Int) extends Ordered[Rational] {
 
   // for ordering
   override def compare(that: Rational): Int = (num * that.den) compare (den * that.num)
-}
-
-object / {
-  def unapply(ratio: Rational): (Int, Int) = (ratio.num, ratio.den)
 }
