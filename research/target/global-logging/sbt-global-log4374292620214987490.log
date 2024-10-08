@@ -1,0 +1,10 @@
+[debug] > Exec(runMain Main, None, None)
+[debug] Evaluating tasks: Compile / runMain
+[debug] Running task... Cancel: Signal, check cycles: false, forcegc: true
+[info] compiling 11 Scala sources to C:\Users\drehe.5CG024DH56\Desktop\research\ResistanceResearch\research\target\scala-3.3.1\classes ...
+[info] done compiling
+[warn] Canceling execution...
+[error] Cancelled: runMain Main
+[error] Cancelled: runMain Main
+[error] Use 'last' for the full log.
+[debug] > Exec(idea-shell, None, None)

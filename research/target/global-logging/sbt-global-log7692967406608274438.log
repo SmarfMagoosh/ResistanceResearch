@@ -1,0 +1,14 @@
+[debug] > Exec(run, None, None)
+[debug] Evaluating tasks: Compile / run
+[debug] Running task... Cancel: Signal, check cycles: false, forcegc: true
+[info] compiling 10 Scala sources to C:\Users\drehe.5CG024DH56\Desktop\research\ResistanceResearch\research\target\scala-3.3.1\classes ...
+[warn] -- Warning: C:\Users\drehe.5CG024DH56\Desktop\research\ResistanceResearch\research\src\main\scala\Main.scala:1:7 
+[warn] 1 |object Main extends App {
+[warn]   |       ^
+[warn]   |object Main differs only in case from class main. Such classes will overwrite one another on case-insensitive filesystems.
+[warn] one warning found
+[info] done compiling
+[success] Total time: 101 s (01:41), completed Oct 5, 2024, 4:36:33 PM
+[debug] > Exec(idea-shell, None, None)
+[debug] > Exec(, None, None)
+[debug] > Exec(idea-shell, None, None)

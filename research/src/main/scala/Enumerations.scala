@@ -43,6 +43,11 @@ object Intentions extends Enumeration {
   TwoReportsFourOthers = Value // Both spies report, and distinct pairs of non-spies. (Requires 6+ players)
 }
 
+object ReportTypes extends Enumeration {
+  type ReportType = Value
+  val Merlin, Percival = Value
+}
+
 extension (gameType: GameTypes.GameType)
   def indexToRole(index: Int): Roles.Role = {
     index match
@@ -69,7 +74,7 @@ extension (role: Roles.Role)
       case Roles.Merlin => 'M'
       case Roles.Percival => 'P'
       case Roles.Servant => 'S'
-      case Roles.Minion => 'E'  // 'E' for Evil
+      case Roles.Minion => 'E' // 'E' for Evil
       case Roles.Mordred => 'U' // 'U' for Unknown
       case Roles.Morgana => 'I' // 'I' for Impostor
   }
